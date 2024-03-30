@@ -10,14 +10,14 @@ class jcache
     public:
 
         jcache();
-        jcache(std::string& cache_filename);
-        jcache(char* cache_filename);
+        jcache(const std::string& cache_filename);
+        jcache(const char* cache_filename);
 
         ~jcache();
 
         // takes the url and its corresponding json from user
         // and adds it to the fast_cache map
-        bool cache_json(std::string& url, Json::Value& obj);
+        void cache_json(const std::string& url, Json::Value& obj);
         
         // given a url a Json value is returned by reference
         void retrieve_json(const std::string& url, Json::Value& ret);
@@ -32,7 +32,7 @@ class jcache
         void save_cache();
 
         // setter for cache filename
-        void set_cache_filename(std::string& filename);
+        void set_cache_filename(const std::string& filename);
 
     private:
 
@@ -64,12 +64,11 @@ class jcache
         // reads cache file into fast_cache
         void from_file();
         
-        // reads file to stringstream
+        // reads file to string
         void from_file_string(std::stringstream& ret);
         
-        // takes line from stringstream file buffer and returns by ref
-        // the key and value as buffers
-        void parse_line(std::string& line, std::stringstream& keybuf, std::stringstream& valuebuf);
+        
+        void get_next(std::stringstream& filebuf, std::stringstream& next);
         
         // takes keybuffer and valuebuffer. converts value buffer to 
         // Json::Value through Json::reader and addes it to map.

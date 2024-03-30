@@ -14,12 +14,12 @@ jcache::jcache()
 
 }
 
-jcache::jcache(string& cache_filename)
+jcache::jcache(const string& cache_filename)
 {
     this->cache_filename = cache_filename;
 }
 
-jcache::jcache(char* cache_filename)
+jcache::jcache(const char* cache_filename)
 {
     this->cache_filename = cache_filename;
 }
@@ -29,10 +29,9 @@ jcache::~jcache()
 
 }
 
-bool jcache::cache_json(string& url, Json::Value& obj)
+void jcache::cache_json(const string& url, Json::Value& obj)
 {
     this->fast_cache[url] = obj;
-    return true;
 }
 
 void jcache::retrieve_json(const string& url, Json::Value& ret)
@@ -55,7 +54,7 @@ void jcache::save_cache()
     this->to_file();
 }
 
-void jcache::set_cache_filename(string& filename)
+void jcache::set_cache_filename(const string& filename)
 {
     this->cache_filename = filename;
 }
@@ -72,7 +71,7 @@ void jcache::to_file_string(stringstream& ret)
     for (auto p : this->fast_cache)
     {
         ret << p.first  << this->file_delim << p.second.asString() 
-            << '\n'; 
+            << this->file_delim; 
     }
 }
 
@@ -99,33 +98,26 @@ void jcache::from_file_string(stringstream& ret)
     in.close();
 }
 
-void jcache::parse_line(string& line, stringstream& keybuf, stringstream& valuebuf)
+void jcache::get_next(stringstream& filebuf, stringstream& next)
 {
+    char c;
     int delim_rpts = 0;
-
     stringstream delimbuf;
 
-    size_t i = 0;
-
-    while (delim_rpts < this->file_delim_size)
+    while (filebuf >> c && delim_rpts < this->file_delim_size)
     {
-        delimbuf << line[i];
-        i++;
+        delimbuf << c;
 
-        if (line[i] == this->file_delim[0])
+        if (c == this->file_delim[0])
         {
             delim_rpts++;
             continue;
         }
-        
+
         delim_rpts = 0;
-        
-        keybuf << delimbuf.rdbuf();
-        
+        next << delimbuf.rdbuf();
         delimbuf.clear();
     }
-
-    valuebuf << line.substr(i, line.size() - i);
 }
 
 void jcache::add_to_cache(stringstream& keybuf, stringstream& valuebuf)
@@ -141,12 +133,14 @@ void jcache::from_file()
     stringstream filebuf, keybuf, valuebuf;
     this->from_file_string(filebuf);
 
-    string line;
-
-    while (getline(filebuf, line))
+    while (!filebuf.eof())
     {
-        parse_line(line, keybuf, valuebuf);
-        add_to_cache(keybuf,valuebuf);
+        this->get_next(filebuf, keybuf);
+        this->get_next(filebuf, valuebuf);
+        this->add_to_cache(keybuf, valuebuf);
+
+        keybuf.clear();
+        valuebuf.clear();
     }
 }
 /*
