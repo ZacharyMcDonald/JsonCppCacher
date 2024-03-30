@@ -6,6 +6,10 @@
 using namespace std;
 
 
+/*********************************************************************
+**                             PUBLIC                               **
+*********************************************************************/
+
 bool jcache::cache_json(string& url, Json::Value& obj)
 {
     this->fast_cache[url] = obj;
@@ -23,23 +27,31 @@ Json::Value jcache::retrieve_json(const string& url)
 
 void jcache::load_cache()
 {
-    // TODO: get data file
-    // data should be in matrix
-
+    this->from_file();
 }
 
 void jcache::save_cache()
 {
-    
-
-    // save to file
+    this->to_file();
 }
 
+void jcache::set_cache_filename(string& filename)
+{
+    this->cache_filename = filename;
+}
+
+/*********************************************************************
+**                            PRIVATE                               **
+*********************************************************************/
+
+/*
+* SAVING CACHE
+*/
 void jcache::to_file_string(stringstream& ret)
 {
     for (auto p : this->fast_cache)
     {
-        ret << p.first  << this->full_delim << p.second.asString() 
+        ret << p.first  << this->file_delim << p.second.asString() 
             << '\n'; 
     }
 }
@@ -53,7 +65,13 @@ void jcache::to_file()
     out << s.rdbuf();
     out.close();
 }
+/*
+* END SAVING CACHE
+*/
 
+/*
+* LOADING CACHE
+*/
 void jcache::from_file_string(stringstream& ret)
 {
     fstream in(this->cache_filename);
@@ -69,12 +87,12 @@ void jcache::parse_line(string& line, stringstream& keybuf, stringstream& valueb
 
     size_t i = 0;
 
-    while (delim_rpts < this->delim_rpts)
+    while (delim_rpts < this->file_delim_size)
     {
         delimbuf << line[i];
         i++;
 
-        if (line[i] == this->simple_delim)
+        if (line[i] == this->file_delim[0])
         {
             delim_rpts++;
             continue;
@@ -90,20 +108,29 @@ void jcache::parse_line(string& line, stringstream& keybuf, stringstream& valueb
     valuebuf << line.substr(i, line.size() - i);
 }
 
+void jcache::add_to_cache(stringstream& keybuf, stringstream& valuebuf)
+{
+    Json::Value value;
+    Json::Reader reader;
+    reader.parse(valuebuf, value);
+    this->fast_cache[keybuf.str()] = value;
+}
+
 void jcache::from_file()
 {
-    stringstream buf, keybuf, valuebuf;
-    this->from_file_string(buf);
+    stringstream filebuf, keybuf, valuebuf;
+    this->from_file_string(filebuf);
 
     string line;
 
-    while (getline(buf, line))
+    while (getline(filebuf, line))
     {
         parse_line(line, keybuf, valuebuf);
-
-
+        add_to_cache(keybuf,valuebuf);
     }
 }
+/*
+* END LOADING CACHE
+*/
 
-
-
+// End of file
