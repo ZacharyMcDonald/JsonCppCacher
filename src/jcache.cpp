@@ -1,18 +1,38 @@
 // class that stores matrices and json maps. URL is the key and 
 // json obj is value. 
 
-#include "Memory_API.h"
+#include "jcache.h"
 
 using namespace std;
-
 
 /*********************************************************************
 **                             PUBLIC                               **
 *********************************************************************/
 
+jcache::jcache()
+{
+
+}
+
+jcache::jcache(string& cache_filename)
+{
+    this->cache_filename = cache_filename;
+}
+
+jcache::jcache(char* cache_filename)
+{
+    this->cache_filename = cache_filename;
+}
+
+jcache::~jcache()
+{
+
+}
+
 bool jcache::cache_json(string& url, Json::Value& obj)
 {
     this->fast_cache[url] = obj;
+    return true;
 }
 
 void jcache::retrieve_json(const string& url, Json::Value& ret)
@@ -83,7 +103,7 @@ void jcache::parse_line(string& line, stringstream& keybuf, stringstream& valueb
 {
     int delim_rpts = 0;
 
-    stringstream delimbuf, keybuf, valuebuf;
+    stringstream delimbuf;
 
     size_t i = 0;
 

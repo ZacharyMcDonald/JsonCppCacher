@@ -9,6 +9,12 @@ class jcache
 {
     public:
 
+        jcache();
+        jcache(std::string& cache_filename);
+        jcache(char* cache_filename);
+
+        ~jcache();
+
         // takes the url and its corresponding json from user
         // and adds it to the fast_cache map
         bool cache_json(std::string& url, Json::Value& obj);
@@ -35,11 +41,11 @@ class jcache
         
         // filename where the cache is stored when the program is 
         // ended
-        string cache_filename;
+        std::string cache_filename;
 
         // custom file deliminator for the cache save file. Must be 
         // the same character repeated
-        char* file_delim = ":::::";
+        const char* file_delim = ":::::";
         int   file_delim_size = 5;
 
         /*
